@@ -7,20 +7,13 @@ import { mockDelay } from './utils'
 import { unstable_cacheTag as cacheTag } from 'next/cache'
 
 // Current user
-export const getCurrentUser = cache(async () => {
+export const getCurrentUser = async () => {
+  await mockDelay(1000)
   const session = await getSession()
-  if (!session) return null
-
-  // Skip database query during prerendering if we don't have a session
-  // hack until we have PPR https://nextjs.org/docs/app/building-your-application/rendering/partial-prerendering
-  if (
-    typeof window === 'undefined' &&
-    process.env.NEXT_PHASE === 'phase-production-build'
-  ) {
+  if (!session) {
     return null
   }
 
-  await mockDelay(700)
   try {
     const result = await db
       .select()
@@ -32,18 +25,23 @@ export const getCurrentUser = cache(async () => {
     console.error('Error getting user by ID:', error)
     return null
   }
-})
+}
 
 // Get user by email
-export const getUserByEmail = cache(async (email: string) => {
+export const getUserByEmail = async (email: string) => {
+  const session = getSession()
+  if (!session) {
+    return null
+  }
+
   try {
-    const result = await db.select().from(users).where(eq(users.email, email))
-    return result[0] || null
+    const results = await db.select().from(users).where(eq(users.email, email))
+    return results[0] || null
   } catch (error) {
     console.error('Error getting user by email:', error)
     return null
   }
-})
+}
 
 // Fetcher functions for React Query
 export async function getIssue(id: number) {
@@ -63,10 +61,8 @@ export async function getIssue(id: number) {
 }
 
 export async function getIssues() {
-  'use cache'
-  cacheTag('issues')
   try {
-    await mockDelay(700)
+    await mockDelay(1000)
     const result = await db.query.issues.findMany({
       with: {
         user: true,

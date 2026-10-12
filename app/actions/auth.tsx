@@ -161,7 +161,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
   }
 }
 
-export async function signout(): Promise<void> {
+export async function signOut(): Promise<void> {
   try {
     await deleteSession()
   } catch (e) {
