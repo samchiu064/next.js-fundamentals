@@ -4,7 +4,20 @@ import { db } from '@/db'
 import { issues } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/dal'
-import { z } from 'zod'
+import { success, z } from 'zod'
+import { mockDelay } from '@/lib/utils'
+
+function formatZodErrors(error: z.ZodError): Record<string, string[]> {
+  return error.issues.reduce(
+    (acc, issue) => {
+      const path = issue.path[0]?.toString() || 'form'
+      if (!acc[path]) acc[path] = []
+      acc[path].push(issue.message)
+      return acc
+    },
+    {} as Record<string, string[]>,
+  )
+}
 
 // Define Zod schema for issue validation
 const IssueSchema = z.object({
@@ -77,4 +90,75 @@ export async function createIssue(data: IssueData): Promise<ActionResponse> {
   }
 }
 
-export async function updateIssue() {}
+export async function updateIssue(id: number, data: Partial<IssueData>) {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorize access',
+        error: 'Unauthorized',
+      }
+    }
+
+    const UpdateIssueSchema = IssueSchema.partial()
+    const validationResult = UpdateIssueSchema.safeParse(data)
+
+    if (!validationResult.success) {
+      return {
+        success: false,
+        message: 'Invalid issue',
+        error: formatZodErrors(validationResult.error),
+      }
+    }
+
+    // Type safe update object with validated data
+    const validatedData = validationResult.data
+    const updateData: Record<string, unknown> = {}
+
+    if (validatedData.title !== undefined)
+      updateData.title = validatedData.title
+    if (validatedData.description !== undefined)
+      updateData.description = validatedData.description
+    if (validatedData.status !== undefined)
+      updateData.status = validatedData.status
+    if (validatedData.priority !== undefined)
+      updateData.priority = validatedData.priority
+
+    // Update issue
+    await db.update(issues).set(updateData).where(eq(issues.id, id))
+
+    return { success: true, message: 'Issue updated successfully' }
+  } catch (err) {
+    console.error('Error updating issue:', err)
+    return {
+      success: false,
+      message: 'An error occurred while updating the issue',
+      error: 'Failed to update issue',
+    }
+  }
+}
+
+export async function deleteIssue(id: number) {
+  try {
+    // Security check - ensure user is authenticated
+    await mockDelay(700)
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('Unauthorized')
+    }
+
+    // Delete issue
+    await db.delete(issues).where(eq(issues.id, id))
+
+    return { success: true, message: 'Issue deleted successfully' }
+  } catch (error) {
+    console.error('Error deleting issue:', error)
+    return {
+      success: false,
+      message: 'An error occurred while deleting the issue',
+      error: 'Failed to delete issue',
+    }
+  }
+}
