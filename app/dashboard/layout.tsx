@@ -1,6 +1,4 @@
-import { Suspense } from 'react'
 import Navigation from '../components/Navigation'
-import DashboardSkeleton from '../components/DashboardSkeleton'
 
 export default async function DashboardLayout({
   children,
