@@ -46,17 +46,15 @@ export const getUserByEmail = async (email: string) => {
 // Fetcher functions for React Query
 export async function getIssue(id: number) {
   try {
-    await mockDelay(700)
-    const result = await db.query.issues.findFirst({
+    const issue = await db.query.issues.findFirst({
       where: eq(issues.id, id),
-      with: {
-        user: true,
-      },
+      with: { user: true },
     })
-    return result
-  } catch (error) {
-    console.error(`Error fetching issue ${id}:`, error)
-    throw new Error('Failed to fetch issue')
+
+    return issue
+  } catch (err) {
+    console.error(err)
+    return null
   }
 }
 
