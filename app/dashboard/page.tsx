@@ -8,8 +8,10 @@ import { Priority, Status } from '@/lib/types'
 import { ISSUE_STATUS, ISSUE_PRIORITY } from '@/db/schema'
 import { Suspense } from 'react'
 import DashboardSkeleton from '../components/DashboardSkeleton'
+import { connection } from 'next/server'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  await connection()
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <DashboardContent />

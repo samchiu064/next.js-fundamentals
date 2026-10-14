@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/dal'
 import { success, z } from 'zod'
 import { mockDelay } from '@/lib/utils'
+import { revalidateTag } from 'next/cache'
 
 function formatZodErrors(error: z.ZodError): Record<string, string[]> {
   return error.issues.reduce(
@@ -79,6 +80,7 @@ export async function createIssue(data: IssueData): Promise<ActionResponse> {
       userId: validatedData.userId,
     })
 
+    revalidateTag('issues', { expire: 0 })
     return { success: true, message: 'Issue created successfully' }
   } catch (error) {
     console.error('Error creating issue:', error)

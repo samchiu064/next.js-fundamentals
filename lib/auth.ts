@@ -14,7 +14,7 @@ interface JWTPayload {
 
 // Secret key for JWT signing (in a real app, use an environment variable)
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-min-32-chars-long!!!'
+  process.env.JWT_SECRET || 'your-secret-key-min-32-chars-long!!!',
 )
 
 // JWT expiration time
@@ -117,7 +117,7 @@ export async function createSession(userId: string) {
 }
 
 // Get current session from JWT
-export const getSession = cache(async () => {
+export const getSession = async () => {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get('auth_token')?.value
@@ -133,7 +133,7 @@ export const getSession = cache(async () => {
       error.message.includes('During prerendering, `cookies()` rejects')
     ) {
       console.log(
-        'Cookies not available during prerendering, returning null session'
+        'Cookies not available during prerendering, returning null session',
       )
       return null
     }
@@ -141,7 +141,7 @@ export const getSession = cache(async () => {
     console.error('Error getting session:', error)
     return null
   }
-})
+}
 
 // Delete session by clearing the JWT cookie
 export async function deleteSession() {
