@@ -30,11 +30,11 @@ const IssueSchema = z.object({
   description: z.string().optional().nullable(),
 
   status: z.enum(['backlog', 'todo', 'in_progress', 'done'], {
-    errorMap: () => ({ message: 'Please select a valid status' }),
+    message: 'Please select a valid status',
   }),
 
   priority: z.enum(['low', 'medium', 'high'], {
-    errorMap: () => ({ message: 'Please select a valid priority' }),
+    message: 'Please select a valid priority',
   }),
   userId: z.string().min(1, 'User ID is required'),
 })

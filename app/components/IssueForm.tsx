@@ -38,7 +38,7 @@ export default function IssueForm({
   const [state, formAction, isPending] = useActionState<
     ActionResponse,
     FormData
-  >(async (prevState: ActionResponse, formData: FormData) => {
+  >(async (_: ActionResponse, formData: FormData) => {
     // Extract data from form
     const data = {
       title: formData.get('title') as string,
@@ -74,7 +74,15 @@ export default function IssueForm({
         }
       }
 
-      return result
+      return {
+        success: result.success,
+        message: result.message,
+        error: typeof result.error === 'string' ? result.error : undefined,
+        errors:
+          typeof result.error === 'object' && result.error !== null
+            ? result.error
+            : undefined,
+      }
     } catch (err) {
       return {
         success: false,
